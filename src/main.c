@@ -110,6 +110,18 @@ int main(int argc, char* args[]) {
     player.angle = -PI / 2.0f;
     player.size = 20.0f;
 
+    Asteroid asteroids[ASTEROID_COUNT];
+
+for (int i = 0; i < ASTEROID_COUNT; i++) {
+    asteroids[i].pos.x = 100 + i * 110;
+    asteroids[i].pos.y = 80 + (i % 3) * 140;
+
+    asteroids[i].vel.x = 1.0f + (i % 2);
+    asteroids[i].vel.y = 0.5f + (i % 3) * 0.4f;
+
+    asteroids[i].radius = 30.0f;
+}
+
     bool quit = false;
     SDL_Event e;
 
