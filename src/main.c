@@ -162,17 +162,42 @@ for (int i = 0; i < ASTEROID_COUNT; i++) {
 
     asteroids[i].radius = 30.0f;
 }
+for (int i = 0; i < BULLET_COUNT; i++) {
+    bullets[i].active = false;
+}
 
     bool quit = false;
     SDL_Event e;
-
     while (!quit) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
+
+  while (SDL_PollEvent(&e)) {
+
+    if (e.type == SDL_QUIT) {
+        quit = true;
+    }
+
+    if (e.type == SDL_KEYDOWN) {
+
+        if (e.key.keysym.sym == SDLK_SPACE) {
+
+            for (int i = 0; i < BULLET_COUNT; i++) {
+
+                if (!bullets[i].active) {
+
+                    bullets[i].active = true;
+                    bullets[i].pos = player.pos;
+
+                    bullets[i].vel.x = cos(player.angle) * 8.0f;
+                    bullets[i].vel.y = sin(player.angle) * 8.0f;
+
+                    break;
+                }
             }
         }
-
+    }
+}
+   
+}
         const Uint8* keys = SDL_GetKeyboardState(NULL);
 
         if (keys[SDL_SCANCODE_LEFT]) {
