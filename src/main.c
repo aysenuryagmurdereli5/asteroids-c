@@ -36,6 +36,7 @@ typedef struct {
     Vector2D pos;
     Vector2D vel;
     float radius;
+     bool active;
 } Asteroid;
 
 typedef struct {
@@ -58,6 +59,8 @@ void WrapPosition(Vector2D* pos) {
 
 }
 
+// ---------------- GEMİ ÇİZME FONKSİYONU ----------------
+
 void DrawSpaceship(SDL_Renderer* renderer, Spaceship ship) {
     float x1 = ship.pos.x + cos(ship.angle) * ship.size;
     float y1 = ship.pos.y + sin(ship.angle) * ship.size;
@@ -75,6 +78,8 @@ void DrawSpaceship(SDL_Renderer* renderer, Spaceship ship) {
     SDL_RenderDrawLine(renderer, (int)x3, (int)y3, (int)x1, (int)y1);
 }
 
+// ---------------- ASTEROID ÇİZME FONKSİYONU ----------------
+
 void DrawAsteroid(SDL_Renderer* renderer, Asteroid asteroid) {
     SDL_SetRenderDrawColor(renderer, 180, 180, 180, 255);
 
@@ -91,23 +96,34 @@ void DrawAsteroid(SDL_Renderer* renderer, Asteroid asteroid) {
         SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
     }
 }
-
+// ---------------- MERMİ ÇİZME FONKSİYONU ----------------
 void DrawBullet(SDL_Renderer* renderer, Bullet bullet) {
 
     // Eğer mermi aktif değilse çizme
-    if (!bullet.active)
+    if (!bullet.active){
         return;
-
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    }
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
     SDL_Rect rect = {
         (int)bullet.pos.x,
         (int)bullet.pos.y,
-        4,
-        4
+        5,
+        5
     };
 
     SDL_RenderFillRect(renderer, &rect);
+}
+// ---------------- ÇARPISMA KONTROL FONKSİYONU ----------------
+bool CheckCollision(float x1, float y1, float r1,
+                    float x2, float y2, float r2) {
+
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+
+    float distance = sqrt(dx * dx + dy * dy);
+
+    return distance < (r1 + r2);
 }
 
 int main(int argc, char* args[]) {
@@ -141,7 +157,7 @@ int main(int argc, char* args[]) {
         SDL_Quit();
         return 1;
     }
-
+  // ---------------- OYUNCU GEMİSİ ----------------
     Spaceship player;
     player.pos.x = SCREEN_WIDTH / 2.0f;
     player.pos.y = SCREEN_HEIGHT / 2.0f;
@@ -149,9 +165,10 @@ int main(int argc, char* args[]) {
     player.vel.y = 0.0f;
     player.angle = -PI / 2.0f;
     player.size = 20.0f;
-
+   // ---------------- ASTEROIDLER ----------------
     Asteroid asteroids[ASTEROID_COUNT];
     Bullet bullets[BULLET_COUNT];
+    
 
 for (int i = 0; i < ASTEROID_COUNT; i++) {
     asteroids[i].pos.x = 100 + i * 110;
@@ -162,29 +179,36 @@ for (int i = 0; i < ASTEROID_COUNT; i++) {
 
     asteroids[i].radius = 30.0f;
 }
-for (int i = 0; i < BULLET_COUNT; i++) {
-    bullets[i].active = false;
-}
-
+   // ---------------- MERMİLER ----------------
+   
+   // Başlangıçta tüm mermiler pasif
+    for (int i = 0; i < BULLET_COUNT; i++) {
+        bullets[i].active = false;
+    }
     bool quit = false;
     SDL_Event e;
+   // ---------------- OYUN DÖNGÜSÜ ----------------
+
     while (!quit) {
 
-  while (SDL_PollEvent(&e)) {
+        while (SDL_PollEvent(&e)) {
 
-    if (e.type == SDL_QUIT) {
-        quit = true;
-    }
+            if (e.type == SDL_QUIT) {
+                quit = true;
+            }
+        }
 
-    if (e.type == SDL_KEYDOWN) {
+        const Uint8* keys = SDL_GetKeyboardState(NULL);
 
-        if (e.key.keysym.sym == SDLK_SPACE) {
+     // SPACE tuşuna basılırsa mermi oluştur
+        if (keys[SDL_SCANCODE_SPACE]) {
 
             for (int i = 0; i < BULLET_COUNT; i++) {
 
                 if (!bullets[i].active) {
 
                     bullets[i].active = true;
+
                     bullets[i].pos = player.pos;
 
                     bullets[i].vel.x = cos(player.angle) * 8.0f;
@@ -194,63 +218,71 @@ for (int i = 0; i < BULLET_COUNT; i++) {
                 }
             }
         }
-    }
-}
-   
-}
-        const Uint8* keys = SDL_GetKeyboardState(NULL);
-
+        //SOLA DÖN 
         if (keys[SDL_SCANCODE_LEFT]) {
             player.angle -= 0.08f;
         }
-
+       // Sağa dön
         if (keys[SDL_SCANCODE_RIGHT]) {
             player.angle += 0.08f;
         }
 
+        // İleri git
         if (keys[SDL_SCANCODE_UP]) {
             player.vel.x += cos(player.angle) * 0.15f;
             player.vel.y += sin(player.angle) * 0.15f;
         }
-
+          // Gemi hareketi
         player.pos.x += player.vel.x;
         player.pos.y += player.vel.y;
 
+        // Hafif yavaşlama efekti
         player.vel.x *= 0.99f;
         player.vel.y *= 0.99f;
 
+        // Gemiyi ekran içinde sar
         WrapPosition(&player.pos);
 
+         // ---------------- ASTEROID HAREKETLERİ ----------------
+
         for (int i = 0; i < ASTEROID_COUNT; i++) {
-     asteroids[i].pos.x += asteroids[i].vel.x;
-     asteroids[i].pos.y += asteroids[i].vel.y;
 
-    WrapPosition(&asteroids[i].pos);
-}
-for (int i = 0; i < BULLET_COUNT; i++) {
+            asteroids[i].pos.x += asteroids[i].vel.x;
+            asteroids[i].pos.y += asteroids[i].vel.y;
 
-    if (bullets[i].active) {
-
-        bullets[i].pos.x += bullets[i].vel.x;
-        bullets[i].pos.y += bullets[i].vel.y;
-
-        if (bullets[i].pos.x < 0 ||
-            bullets[i].pos.x > SCREEN_WIDTH ||
-            bullets[i].pos.y < 0 ||
-            bullets[i].pos.y > SCREEN_HEIGHT) {
-
-            bullets[i].active = false;
+            WrapPosition(&asteroids[i].pos);
         }
-    }
-}
+  // ---------------- MERMİ HAREKETLERİ ----------------
 
+        for (int i = 0; i < BULLET_COUNT; i++) {
+
+            if (bullets[i].active) {
+
+                bullets[i].pos.x += bullets[i].vel.x;
+                bullets[i].pos.y += bullets[i].vel.y;
+
+     // Mermi ekran dışına çıkarsa sil
+                if (bullets[i].pos.x < 0 ||
+                    bullets[i].pos.x > SCREEN_WIDTH ||
+                    bullets[i].pos.y < 0 ||
+                    bullets[i].pos.y > SCREEN_HEIGHT) {
+
+                    bullets[i].active = false;
+                }
+            }
+        }
+
+    
+//ekranı siyaha boyama
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
-
+//Gemiyi çizme
         DrawSpaceship(renderer, player);
+//Asteroidleri çizme
         for (int i = 0; i < ASTEROID_COUNT; i++) {
     DrawAsteroid(renderer, asteroids[i]);
 }
+// Mermileri çizme
 for (int i = 0; i < BULLET_COUNT; i++) {
     DrawBullet(renderer, bullets[i]);
 }
