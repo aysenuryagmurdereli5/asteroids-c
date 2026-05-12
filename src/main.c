@@ -1,107 +1,131 @@
-
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <math.h> // Trigonometri işlemleri (sin, cos) için eklendi
+#include <math.h>
 
 #define PI 3.14159265f
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
-// --- 1. VEKTÖR VE GEMİ YAPILARI ---
-
-// 2 Boyutlu Vektör Yapısı (Konum, Hız ve İvme için kullanılacak)
 typedef struct {
     float x;
     float y;
 } Vector2D;
 
-// Uzay Gemisi Yapısı
 typedef struct {
-    Vector2D pos;    // Geminin konumu (Position)
-    Vector2D vel;    // Geminin hızı (Velocity)
-    float angle;     // Geminin baktığı açı (Radyan cinsinden)
-    float size;      // Geminin büyüklüğü (Yarıçapı)
+    Vector2D pos;
+    Vector2D vel;
+    float angle;
+    float size;
 } Spaceship;
 
+void WrapPosition(Vector2D* pos) {
+    if (pos->x < 0) pos->x = SCREEN_WIDTH;
+    if (pos->x > SCREEN_WIDTH) pos->x = 0;
+    if (pos->y < 0) pos->y = SCREEN_HEIGHT;
+    if (pos->y > SCREEN_HEIGHT) pos->y = 0;
+}
 
-// --- 2. ÇİZİM FONKSİYONLARI ---
-
-// Gemiyi (üçgen şeklinde) ekrana çizen fonksiyon
 void DrawSpaceship(SDL_Renderer* renderer, Spaceship ship) {
-    // SDL2'de doğrudan üçgen çizme fonksiyonu yoktur, çizgileri birleştirerek yaparız.
-    // Geminin 3 köşesini trigonometri (sin, cos) kullanarak hesaplıyoruz.
-
-    // 1. Nokta: Geminin Burnu (Baktığı açıya doğru)
     float x1 = ship.pos.x + cos(ship.angle) * ship.size;
     float y1 = ship.pos.y + sin(ship.angle) * ship.size;
 
-    // 2. Nokta: Sol arka köşe (+2.5 radyan açı ekleyerek buluyoruz)
     float x2 = ship.pos.x + cos(ship.angle + 2.5f) * ship.size;
     float y2 = ship.pos.y + sin(ship.angle + 2.5f) * ship.size;
 
-    // 3. Nokta: Sağ arka köşe (-2.5 radyan açı çıkararak buluyoruz)
     float x3 = ship.pos.x + cos(ship.angle - 2.5f) * ship.size;
     float y3 = ship.pos.y + sin(ship.angle - 2.5f) * ship.size;
 
-    // Çizim rengini Beyaz yap (R, G, B, Alpha)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-    // 3 noktayı çizgilerle birleştirerek üçgeni oluştur
     SDL_RenderDrawLine(renderer, (int)x1, (int)y1, (int)x2, (int)y2);
     SDL_RenderDrawLine(renderer, (int)x2, (int)y2, (int)x3, (int)y3);
     SDL_RenderDrawLine(renderer, (int)x3, (int)y3, (int)x1, (int)y1);
 }
 
-// --- ANA FONKSİYON ---
-
 int main(int argc, char* args[]) {
+    SDL_SetMainReady();
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL baslatilamadi! Hata: %s\n", SDL_GetError());
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("Asteroids - KOU Proje", 
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-        SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow(
+        "Asteroids - KOU Proje",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT,
+        SDL_WINDOW_SHOWN
+    );
 
     if (window == NULL) {
         printf("Pencere olusturulamadi! Hata: %s\n", SDL_GetError());
+        SDL_Quit();
         return 1;
     }
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    
-    // Gemimizi oluşturup başlangıç değerlerini atıyoruz
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+
+    if (renderer == NULL) {
+        printf("Renderer olusturulamadi! Hata: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
     Spaceship player;
-    player.pos.x = SCREEN_WIDTH / 2.0f;  // Ekranın tam ortası X
-    player.pos.y = SCREEN_HEIGHT / 2.0f; // Ekranın tam ortası Y
-    player.vel.x = 0.0f;                 // Başlangıçta hızı 0
+    player.pos.x = SCREEN_WIDTH / 2.0f;
+    player.pos.y = SCREEN_HEIGHT / 2.0f;
+    player.vel.x = 0.0f;
     player.vel.y = 0.0f;
-    player.angle = -PI / 2.0f;           // Yukarıya bakması için -90 derece
-    player.size = 20.0f;                 // Boyutu
+    player.angle = -PI / 2.0f;
+    player.size = 20.0f;
 
     bool quit = false;
     SDL_Event e;
 
-    // Oyun Döngüsü
     while (!quit) {
-        while (SDL_PollEvent(&e) != 0) {
+        while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 quit = true;
             }
         }
 
-        // Ekranı temizle (Siyah)
+        const Uint8* keys = SDL_GetKeyboardState(NULL);
+
+        if (keys[SDL_SCANCODE_LEFT]) {
+            player.angle -= 0.08f;
+        }
+
+        if (keys[SDL_SCANCODE_RIGHT]) {
+            player.angle += 0.08f;
+        }
+
+        if (keys[SDL_SCANCODE_UP]) {
+            player.vel.x += cos(player.angle) * 0.15f;
+            player.vel.y += sin(player.angle) * 0.15f;
+        }
+
+        player.pos.x += player.vel.x;
+        player.pos.y += player.vel.y;
+
+        player.vel.x *= 0.99f;
+        player.vel.y *= 0.99f;
+
+        WrapPosition(&player.pos);
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // Gemiyi çiz
         DrawSpaceship(renderer, player);
 
-        // Çizilenleri ekrana yansıt
         SDL_RenderPresent(renderer);
+
+        SDL_Delay(16);
     }
 
     SDL_DestroyRenderer(renderer);
