@@ -23,6 +23,12 @@ typedef struct {
     float size;
 } Spaceship;
 
+typedef struct {
+    Vector2D pos;
+    Vector2D vel;
+    float radius;
+} Asteroid;
+
 void WrapPosition(Vector2D* pos) {
     if (pos->x < 0) pos->x = SCREEN_WIDTH;
     if (pos->x > SCREEN_WIDTH) pos->x = 0;
