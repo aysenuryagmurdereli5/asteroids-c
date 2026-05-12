@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <math.h>
 
+#define ASTEROID_COUNT 6
+
 #define PI 3.14159265f
 
 const int SCREEN_WIDTH = 800;
