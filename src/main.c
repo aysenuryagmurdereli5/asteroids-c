@@ -5,6 +5,7 @@
 #include <math.h>
 
 #define ASTEROID_COUNT 6// Ekranda kaç asteroid olacağını belirler
+#define BULLET_COUNT 20
 
 #define PI 3.14159265f
 
@@ -36,6 +37,12 @@ typedef struct {
     Vector2D vel;
     float radius;
 } Asteroid;
+
+typedef struct {
+    Vector2D pos;
+    Vector2D vel;
+    bool active;
+} Bullet;
 
 // ---------------- EKRAN SARMA FONKSİYONU ----------------
 
@@ -83,6 +90,24 @@ void DrawAsteroid(SDL_Renderer* renderer, Asteroid asteroid) {
 
         SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
     }
+}
+
+void DrawBullet(SDL_Renderer* renderer, Bullet bullet) {
+
+    // Eğer mermi aktif değilse çizme
+    if (!bullet.active)
+        return;
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+
+    SDL_Rect rect = {
+        (int)bullet.pos.x,
+        (int)bullet.pos.y,
+        4,
+        4
+    };
+
+    SDL_RenderFillRect(renderer, &rect);
 }
 
 int main(int argc, char* args[]) {
