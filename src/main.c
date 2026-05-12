@@ -227,6 +227,22 @@ for (int i = 0; i < BULLET_COUNT; i++) {
 
     WrapPosition(&asteroids[i].pos);
 }
+for (int i = 0; i < BULLET_COUNT; i++) {
+
+    if (bullets[i].active) {
+
+        bullets[i].pos.x += bullets[i].vel.x;
+        bullets[i].pos.y += bullets[i].vel.y;
+
+        if (bullets[i].pos.x < 0 ||
+            bullets[i].pos.x > SCREEN_WIDTH ||
+            bullets[i].pos.y < 0 ||
+            bullets[i].pos.y > SCREEN_HEIGHT) {
+
+            bullets[i].active = false;
+        }
+    }
+}
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
@@ -235,7 +251,9 @@ for (int i = 0; i < BULLET_COUNT; i++) {
         for (int i = 0; i < ASTEROID_COUNT; i++) {
     DrawAsteroid(renderer, asteroids[i]);
 }
-
+for (int i = 0; i < BULLET_COUNT; i++) {
+    DrawBullet(renderer, bullets[i]);
+}
         SDL_RenderPresent(renderer);
 
         SDL_Delay(16);
