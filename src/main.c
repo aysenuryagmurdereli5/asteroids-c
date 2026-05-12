@@ -53,6 +53,23 @@ void DrawSpaceship(SDL_Renderer* renderer, Spaceship ship) {
     SDL_RenderDrawLine(renderer, (int)x3, (int)y3, (int)x1, (int)y1);
 }
 
+void DrawAsteroid(SDL_Renderer* renderer, Asteroid asteroid) {
+    SDL_SetRenderDrawColor(renderer, 180, 180, 180, 255);
+
+    for (int i = 0; i < 360; i += 20) {
+        float angle1 = i * PI / 180.0f;
+        float angle2 = (i + 20) * PI / 180.0f;
+
+        int x1 = (int)(asteroid.pos.x + cos(angle1) * asteroid.radius);
+        int y1 = (int)(asteroid.pos.y + sin(angle1) * asteroid.radius);
+
+        int x2 = (int)(asteroid.pos.x + cos(angle2) * asteroid.radius);
+        int y2 = (int)(asteroid.pos.y + sin(angle2) * asteroid.radius);
+
+        SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+    }
+}
+
 int main(int argc, char* args[]) {
     SDL_SetMainReady();
 
