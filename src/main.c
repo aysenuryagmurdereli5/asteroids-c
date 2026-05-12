@@ -151,6 +151,7 @@ int main(int argc, char* args[]) {
     player.size = 20.0f;
 
     Asteroid asteroids[ASTEROID_COUNT];
+    Bullet bullets[BULLET_COUNT];
 
 for (int i = 0; i < ASTEROID_COUNT; i++) {
     asteroids[i].pos.x = 100 + i * 110;
