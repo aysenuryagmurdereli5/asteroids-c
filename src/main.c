@@ -1,21 +1,27 @@
 #define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
+#include <SDL2/SDL.h>// SDL kütüphanesi
 #include <stdio.h>
-#include <stdbool.h>
+#include <stdbool.h>// bool veri tipi için gerekli
 #include <math.h>
 
-#define ASTEROID_COUNT 6
+#define ASTEROID_COUNT 6// Ekranda kaç asteroid olacağını belirler
 
 #define PI 3.14159265f
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
+// ---------------- VEKTÖR YAPISI ----------------
+
+// 2 boyutlu konum ve hız tutmak için kullanıldı
 typedef struct {
     float x;
     float y;
 } Vector2D;
 
+// ---------------- UZAY GEMİSİ YAPISI ----------------
+
+// Oyuncu gemisinin bilgilerini tutar
 typedef struct {
     Vector2D pos;
     Vector2D vel;
@@ -23,17 +29,26 @@ typedef struct {
     float size;
 } Spaceship;
 
+// ---------------- ASTEROID YAPISI ----------------
+// Asteroid bilgilerini tutar
 typedef struct {
     Vector2D pos;
     Vector2D vel;
     float radius;
 } Asteroid;
 
+// ---------------- EKRAN SARMA FONKSİYONU ----------------
+
+// Nesne ekranın dışına çıkarsa diğer taraftan geri gelir
+
 void WrapPosition(Vector2D* pos) {
-    if (pos->x < 0) pos->x = SCREEN_WIDTH;
-    if (pos->x > SCREEN_WIDTH) pos->x = 0;
-    if (pos->y < 0) pos->y = SCREEN_HEIGHT;
-    if (pos->y > SCREEN_HEIGHT) pos->y = 0;
+
+    if (pos->x < 0) pos->x = SCREEN_WIDTH;    // Sol taraftan çıkarsa sağa geçir
+
+    if (pos->x > SCREEN_WIDTH) pos->x = 0;   // Sağ taraftan çıkarsa sola geçir
+    if (pos->y < 0) pos->y = SCREEN_HEIGHT; // Yukarıdan çıkarsa alta geçir
+    if (pos->y > SCREEN_HEIGHT) pos->y = 0;     // Alttan çıkarsa üste geçir
+
 }
 
 void DrawSpaceship(SDL_Renderer* renderer, Spaceship ship) {
@@ -155,10 +170,20 @@ for (int i = 0; i < ASTEROID_COUNT; i++) {
 
         WrapPosition(&player.pos);
 
+        for (int i = 0; i < ASTEROID_COUNT; i++) {
+     asteroids[i].pos.x += asteroids[i].vel.x;
+     asteroids[i].pos.y += asteroids[i].vel.y;
+
+    WrapPosition(&asteroids[i].pos);
+}
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         DrawSpaceship(renderer, player);
+        for (int i = 0; i < ASTEROID_COUNT; i++) {
+    DrawAsteroid(renderer, asteroids[i]);
+}
 
         SDL_RenderPresent(renderer);
 
