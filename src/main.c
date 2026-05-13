@@ -81,6 +81,9 @@ void DrawSpaceship(SDL_Renderer* renderer, Spaceship ship) {
 // ---------------- ASTEROID ÇİZME FONKSİYONU ----------------
 
 void DrawAsteroid(SDL_Renderer* renderer, Asteroid asteroid) {
+     if (!asteroid.active) {
+        return;
+    }
     SDL_SetRenderDrawColor(renderer, 180, 180, 180, 255);
 
     for (int i = 0; i < 360; i += 20) {
@@ -178,6 +181,7 @@ for (int i = 0; i < ASTEROID_COUNT; i++) {
     asteroids[i].vel.y = 0.5f + (i % 3) * 0.4f;
 
     asteroids[i].radius = 30.0f;
+    asteroids[i].active = true;
 }
    // ---------------- MERMİLER ----------------
    
@@ -272,7 +276,34 @@ for (int i = 0; i < ASTEROID_COUNT; i++) {
             }
         }
 
-    
+    // ---------------- ÇARPIŞMA KONTROLÜ ----------------
+
+for (int i = 0; i < BULLET_COUNT; i++) {
+
+    if (!bullets[i].active) {
+        continue;
+    }
+
+    for (int j = 0; j < ASTEROID_COUNT; j++) {
+
+        if (!asteroids[j].active) {
+            continue;
+        }
+
+        if (CheckCollision(
+            bullets[i].pos.x,
+            bullets[i].pos.y,
+            5,
+
+            asteroids[j].pos.x,
+            asteroids[j].pos.y,
+            asteroids[j].radius)) {
+
+            bullets[i].active = false;
+            asteroids[j].active = false;
+        }
+    }
+}
 //ekranı siyaha boyama
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
