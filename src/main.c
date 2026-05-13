@@ -1,5 +1,6 @@
 #define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>// SDL kütüphanesi
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>// bool veri tipi için gerekli
 #include <math.h>
@@ -136,6 +137,10 @@ int main(int argc, char* args[]) {
         printf("SDL baslatilamadi! Hata: %s\n", SDL_GetError());
         return 1;
     }
+    if (TTF_Init() == -1) {
+    printf("TTF baslatilamadi! Hata: %s\n", TTF_GetError());
+    return 1;
+}
 
     SDL_Window* window = SDL_CreateWindow(
         "Asteroids - KOU Proje",
@@ -153,6 +158,12 @@ int main(int argc, char* args[]) {
     }
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+    TTF_Font* font = TTF_OpenFont("C:/Windows/Fonts/arial.ttf", 48);
+
+if (font == NULL) {
+    printf("Font yuklenemedi! Hata: %s\n", TTF_GetError());
+    return 1;
+}
 
     if (renderer == NULL) {
         printf("Renderer olusturulamadi! Hata: %s\n", SDL_GetError());
@@ -160,6 +171,7 @@ int main(int argc, char* args[]) {
         SDL_Quit();
         return 1;
     }
+
   // ---------------- OYUNCU GEMİSİ ----------------
     Spaceship player;
     player.pos.x = SCREEN_WIDTH / 2.0f;
@@ -190,6 +202,7 @@ for (int i = 0; i < ASTEROID_COUNT; i++) {
         bullets[i].active = false;
     }
     int score = 0; // Skor tutmak için değişken
+    bool gameOver = false; // Oyun bitti mi kontrolü için değişken
     bool quit = false;
     SDL_Event e;
    // ---------------- OYUN DÖNGÜSÜ ----------------
@@ -204,6 +217,31 @@ for (int i = 0; i < ASTEROID_COUNT; i++) {
         }
 
         const Uint8* keys = SDL_GetKeyboardState(NULL);
+        if (gameOver) {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    SDL_Color color = {255, 0, 0, 255};
+
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "GAME OVER", color);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    SDL_Rect textRect = {
+        SCREEN_WIDTH / 2 - 150,
+        SCREEN_HEIGHT / 2 - 50,
+        300,
+        100
+    };
+
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    SDL_RenderPresent(renderer);
+
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
+
+    SDL_Delay(16);
+    continue;
+}
 
      // SPACE tuşuna basılırsa mermi oluştur
         if (keys[SDL_SCANCODE_SPACE]) {
@@ -299,7 +337,6 @@ for (int i = 0; i < BULLET_COUNT; i++) {
             asteroids[j].pos.x,
             asteroids[j].pos.y,
             asteroids[j].radius)) {
-
             bullets[i].active = false;
             asteroids[j].active = false;
             score += 10;
@@ -308,6 +345,28 @@ for (int i = 0; i < BULLET_COUNT; i++) {
         }
     }
 }
+
+    // ---------------- OYUNCU ASTEROID ÇARPIŞMASI ----------------
+
+for (int i = 0; i < ASTEROID_COUNT; i++) {
+
+    if (!asteroids[i].active) {
+        continue;
+    }
+
+    if (CheckCollision(
+        player.pos.x,
+        player.pos.y,
+        player.size,
+
+        asteroids[i].pos.x,
+        asteroids[i].pos.y,
+        asteroids[i].radius)) {
+
+        gameOver = true;
+    }
+}
+
 //ekranı siyaha boyama
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
@@ -321,13 +380,34 @@ for (int i = 0; i < BULLET_COUNT; i++) {
 for (int i = 0; i < BULLET_COUNT; i++) {
     DrawBullet(renderer, bullets[i]);
 }
+if (gameOver) {
+
+    SDL_Color color = {255, 0, 0, 255};
+
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "GAME OVER", color);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    SDL_Rect textRect = {
+        SCREEN_WIDTH / 2 - 150,
+        SCREEN_HEIGHT / 2 - 50,
+        300,
+        100
+    };
+
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
+}
         SDL_RenderPresent(renderer);
 
         SDL_Delay(16);
     }
 
+    TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    TTF_Quit();
     SDL_Quit();
 
     return 0;
