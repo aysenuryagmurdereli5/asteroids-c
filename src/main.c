@@ -5,7 +5,7 @@
 #include <math.h>
 
 #define ASTEROID_COUNT 6// Ekranda kaç asteroid olacağını belirler
-#define BULLET_COUNT 20
+#define BULLET_COUNT 5 // Aynı anda kaç mermi olabileceğini belirler
 
 #define PI 3.14159265f
 
@@ -189,6 +189,7 @@ for (int i = 0; i < ASTEROID_COUNT; i++) {
     for (int i = 0; i < BULLET_COUNT; i++) {
         bullets[i].active = false;
     }
+    int score = 0; // Skor tutmak için değişken
     bool quit = false;
     SDL_Event e;
    // ---------------- OYUN DÖNGÜSÜ ----------------
@@ -301,6 +302,9 @@ for (int i = 0; i < BULLET_COUNT; i++) {
 
             bullets[i].active = false;
             asteroids[j].active = false;
+            score += 10;
+           printf("Skor: %d\n", score); // Skoru konsola yazdır
+            break;
         }
     }
 }
